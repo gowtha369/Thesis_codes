@@ -1,11 +1,12 @@
 import os
 import numpy as np
+import joblib
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-import joblib
 
 train_healthy = "E:/plants_data/train/healthy"
 train_diseased = "E:/plants_data/train/diseased"
@@ -24,17 +25,14 @@ def load_images_svm(folder_path, label, img_size=(64, 64)):
             print(f"Error loading {img_path}")
     return data
 
-
 svm_data = load_images_svm(train_healthy, "healthy") + \
            load_images_svm(train_diseased, "diseased") + \
            load_images_svm(test_healthy, "healthy") + \
            load_images_svm(test_diseased, "diseased")
 
-
 X, y = zip(*svm_data)
 X = np.array(X)
 y = np.array(y)
-
 
 le = LabelEncoder()
 y_encoded = le.fit_transform(y)
@@ -46,12 +44,14 @@ svm_model.fit(X_train, y_train)
 
 joblib.dump(svm_model, 'svm_model.joblib')
 joblib.dump(le, 'label_encoder.joblib')
+
 print("Model and label encoder saved successfully!")
 
 svm_model = joblib.load('svm_model.joblib')
 le = joblib.load('label_encoder.joblib')
 
 y_pred = svm_model.predict(X_test)
+
 print("Classification Report:")
 print(classification_report(y_test, y_pred, target_names=le.classes_))
 
@@ -66,22 +66,12 @@ def predict_single_image(image_path, model, label_encoder, img_size=(64, 64)):
     except Exception as e:
         return f"Error: {e}"
 
-image_path = "E:/test.jpg"  
+image_path = "E:/test.jpg"
 result = predict_single_image(image_path, svm_model, le)
 print("Predicted class:", result)
 
-
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-
-
 cm = confusion_matrix(y_test, y_pred)
-
-
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=le.classes_)
-
-
 disp.plot(cmap=plt.cm.Blues)
 plt.title("Confusion Matrix")
 plt.show()
-
