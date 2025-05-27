@@ -55,3 +55,4 @@ y_true = test_generator.classes
 print("Classification Report:")
 print(classification_report(y_true, y_pred, target_names=test_generator.class_indices.keys()))
 model.save('mobilenetv3_model.keras')
+
